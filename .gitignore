@@ -1,0 +1,7 @@
+*.sdf
+*.suo
+/ipch
+/bin
+/res
+/build/VC100/debug
+/build/VC100/release
