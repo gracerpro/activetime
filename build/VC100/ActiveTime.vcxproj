@@ -22,6 +22,7 @@
     <ClInclude Include="..\..\src\MainWindow.h" />
     <ClInclude Include="..\..\src\resource.h" />
     <ClInclude Include="..\..\src\SystemTime.h" />
+    <ClInclude Include="..\..\src\TimeEditorWnd.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\AboutDlg.cpp" />
@@ -35,6 +36,7 @@
     <ClCompile Include="..\..\src\MainWindow.cpp" />
     <ClCompile Include="..\..\src\MainWindowCommandHandler.cpp" />
     <ClCompile Include="..\..\src\SystemTime.cpp" />
+    <ClCompile Include="..\..\src\TimeEditorWnd.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\src\ActiveTime.rc" />
@@ -99,7 +101,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS,;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

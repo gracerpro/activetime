@@ -1,9 +1,10 @@
 #pragma once
 
+#include "SystemTime.h"
 #include <Windows.h>
 #include <tchar.h>
 #include <map>
-#include "SystemTime.h"
+#include <stdint.h>
 
 struct stCompTime {
 	stCompTime() {
@@ -30,6 +31,11 @@ struct stCompTimeStore {
 	stCompTime  compTime;
 };
 
+struct stFileHear {
+	char     signature[2];
+	uint16_t dataOffset;
+};
+
 typedef std::map<Date, stCompTime>                 CompTimeStore;
 typedef std::map<Date, stCompTime>::iterator       CompTimeStoreIter;
 typedef std::map<Date, stCompTime>::const_iterator CompTimeStoreConstIter;
@@ -40,6 +46,8 @@ int LoadTime();
 int SaveTime();
 void FreeTime();
 
-const CompTimeStore& GetCompTimeStore();
+void CleanLastTickCount();
+
+CompTimeStore& GetCompTimeStore();
 
 }

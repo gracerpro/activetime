@@ -28,6 +28,8 @@ static HWND g_hGraphicPopupWnd = NULL;
 int InitInstance(HINSTANCE hInst) {
 	INITCOMMONCONTROLSEX icce;
 
+	g_hInst = hInst;
+
 	icce.dwSize = sizeof(INITCOMMONCONTROLSEX);
 	icce.dwICC = ICC_PROGRESS_CLASS | ICC_BAR_CLASSES | ICC_LISTVIEW_CLASSES | ICC_DATE_CLASSES;
 	InitCommonControlsEx(&icce);
@@ -72,7 +74,7 @@ int Run(HINSTANCE hInst) {
 	nid.cbSize = sizeof(NOTIFYICONDATA);
 	nid.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	nid.hWnd = hWnd;
-	_tcscpy_s(nid.szTip, sizeof(nid.szTip) * sizeof(TCHAR), TEXT("Tip"));
+	_tcscpy(nid.szTip, TEXT("Tip")); // sizeof(nid.szTip) * sizeof(TCHAR),
 	nid.uCallbackMessage = WM_TRAY_MESSAGE;
 	nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP;
 

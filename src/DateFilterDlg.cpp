@@ -12,7 +12,9 @@ HWND g_hWnd = NULL;
 
 LRESULT WINAPI DateFilterDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void DateFilterDlg_OnSelectRangeDate(HWND hWnd, int id);
-
+void DateFilterDlg_OnNotify(HWND hWnd, int id, LPNMHDR pNmdr);
+void DateFilterDlg_OnInitDialog(HWND hWnd);
+void DateFilterDlg_OnCommand(HWND hWnd, int id, int notifyCode, HWND hWndCtrl);
 
 HWND CreateDateFilterDlg(HWND hWndParent) {
 	HWND hWnd;
@@ -20,6 +22,22 @@ HWND CreateDateFilterDlg(HWND hWndParent) {
 	hWnd = CreateDialog(Application::GetInstance(), MAKEINTRESOURCE(IDD_DATE_FILTER), hWndParent, (DLGPROC)DateFilterDlgProc);
 
 	return hWnd;
+}
+
+LRESULT WINAPI DateFilterDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+	switch (uMsg) {
+	case WM_INITDIALOG:
+		DateFilterDlg_OnInitDialog(hWnd);
+		return TRUE;
+	case WM_COMMAND:
+		DateFilterDlg_OnCommand(hWnd, LOWORD(wParam), HIWORD(wParam), (HWND)lParam);
+		break;
+	case WM_NOTIFY:
+		DateFilterDlg_OnNotify(hWnd, wParam, (LPNMHDR)lParam);
+		break;
+	}
+
+	return 0;
 }
 
 void GetSelectedDateRange(Date& minDate, Date& maxDate) {
@@ -88,7 +106,7 @@ void DateFilterDlg_OnSelectRangeDate(HWND hWnd, int id) {
 
 		break;
 	case IDC_RBN_LAST_YEAR:
-		
+
 		break;
 	}
 
@@ -108,18 +126,24 @@ void DateFilterDlg_OnCommand(HWND hWnd, int id, int notifyCode, HWND hWndCtrl) {
 	}
 }
 
-LRESULT WINAPI DateFilterDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	switch (uMsg) {
-	case WM_INITDIALOG:
-		DateFilterDlg_OnInitDialog(hWnd);
-		return TRUE;
-	case WM_COMMAND:
-		DateFilterDlg_OnCommand(hWnd, LOWORD(wParam), HIWORD(wParam), (HWND)lParam);
+void DateFilterDlg_OnNotify(HWND hWnd, int id, LPNMHDR pNmdr) {
+	switch (id) {
+	case IDC_DTP_MIN:
+	case IDC_DTP_MAX:
+		if (pNmdr->code == DTN_DATETIMECHANGE) {
+			// hack, disable second DTN_DATETIMECHANGE
+			static DWORD firstEventTime = 0;
+			DWORD secondEventTime = GetTickCount();
+			if (secondEventTime - firstEventTime < 100) {
+				return;
+			}
+			firstEventTime = secondEventTime;
+
+		//	LPNMDATETIMECHANGE lpChange = (LPNMDATETIMECHANGE)pNmdr;
+			InvalidateRect(Application::GetMainWindow(), NULL, TRUE);
+		}
 		break;
 	}
-
-	return 0;
 }
-
 
 }

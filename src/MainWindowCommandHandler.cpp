@@ -2,7 +2,9 @@
 #include "resource.h"
 #include "global.h"
 #include "AboutDlg.h"
+#include "TimeEditorWnd.h"
 
+using namespace TimeEditorWnd;
 
 namespace MainWindow {
 
@@ -12,6 +14,11 @@ void MainWindow_OnFileOpen() {
 
 void MainWindow_OnFileSaveAs() {
 
+}
+
+void MainWindow_OnFileEditTime() {
+	CompTimeStore& timeStore = Document::GetCompTimeStore();
+	CreateTimeEditorWnd(Application::GetMainWindow(), timeStore);
 }
 
 void MainWindow_OnAppExit() {

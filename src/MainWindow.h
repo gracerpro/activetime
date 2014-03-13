@@ -17,6 +17,7 @@ void MainWindow_OnDestroy(HWND hWnd);
 
 void MainWindow_OnFileOpen();
 void MainWindow_OnFileSaveAs();
+void MainWindow_OnFileEditTime();
 void MainWindow_OnAppExit();
 
 void MainWindow_OnViewToolbar();
@@ -28,6 +29,6 @@ void MainWindow_OnHelpAbout();
 void MainWindow_OnShowHide();
 
 
-int FillTable(const CompTimeStore& timeStore);
+int FillTable(HWND hwndTvi, const CompTimeStore& timeStore, bool rebuild);
 
 }

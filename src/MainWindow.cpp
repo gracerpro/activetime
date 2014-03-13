@@ -89,6 +89,9 @@ void MainWindow_OnCommand(HWND hWnd, int id, int notifyCode, HWND hWndCtrl) {
 	case IDC_FILE_SAVEAS:
 		MainWindow_OnFileSaveAs();
 		break;
+	case IDC_FILE_EDIT_TIME:
+		MainWindow_OnFileEditTime();
+		break;
 	case IDC_VIEW_STATUSBAR:
 		MainWindow_OnViewStatusbar();
 		break;
@@ -101,7 +104,7 @@ void MainWindow_OnCommand(HWND hWnd, int id, int notifyCode, HWND hWndCtrl) {
 	case IDC_HELP_HELP:
 		MainWindow_OnHelpHelp();
 		break;
-	case IDÑ_APP_EXIT:
+	case IDC_APP_EXIT:
 		MainWindow_OnAppExit();
 		break;
 	// tray
@@ -111,11 +114,34 @@ void MainWindow_OnCommand(HWND hWnd, int id, int notifyCode, HWND hWndCtrl) {
 	}
 }
 
-int FillTable(const CompTimeStore& timeStore) {
+int FillTable(HWND hwndTvi, const CompTimeStore& timeStore, bool rebuild) {
 	int addedCount = 0;
 	LV_ITEM item = {0};
+	LV_COLUMN col = {0};
 	TCHAR buf[200];
 
+	if (!IsWindow(hwndTvi)) {
+		return 0;
+	}
+
+	// Add columns
+	if (rebuild) {
+		memset(&col, 0, sizeof(col));
+		col.cx = 70;
+		col.fmt = LVCFMT_CENTER;
+		col.mask = LVCF_WIDTH | LVCF_TEXT | LVCF_FMT;
+		col.cchTextMax = 10;
+		col.pszText = TEXT("Date");
+		ListView_InsertColumn(hwndTvi, 0, &col);
+		col.pszText = TEXT("Active");
+		ListView_InsertColumn(hwndTvi, 1, &col);
+		col.pszText = TEXT("Passive");
+		ListView_InsertColumn(hwndTvi, 2, &col);
+		col.pszText = TEXT("Sleep");
+		ListView_InsertColumn(hwndTvi, 3, &col);
+	}
+
+	// Add data
 	item.mask = LVIF_TEXT | LVIF_PARAM;
 	CompTimeStoreConstIter iter = timeStore.begin();
 	for ( ; iter != timeStore.end(); ++iter) {
@@ -125,17 +151,17 @@ int FillTable(const CompTimeStore& timeStore) {
 		item.pszText = SystemTime::DateToStr(itemDate);
 		item.cchTextMax = _tcslen(item.pszText);
 		item.lParam = itemDate;
-		ListView_InsertItem(g_hwndLviTime, &item); 
+		ListView_InsertItem(hwndTvi, &item);
 
 		wsprintf(buf, TEXT("%02d:%02d:%02d"), compTime.activeTime / 60 / 60,
 			compTime.activeTime / 60 % 60, compTime.activeTime % 60);
-		ListView_SetItemText(g_hwndLviTime, 0, 1, buf);
+		ListView_SetItemText(hwndTvi, 0, 1, buf);
 		wsprintf(buf, TEXT("%02d:%02d:%02d"), compTime.passiveTime / 60 / 60,
 			compTime.passiveTime / 60 % 60, compTime.passiveTime % 60);
-		ListView_SetItemText(g_hwndLviTime, 0, 2, buf);
+		ListView_SetItemText(hwndTvi, 0, 2, buf);
 		wsprintf(buf, TEXT("%02d:%02d:%02d"), compTime.sleepTime / 60 / 60,
 			compTime.sleepTime / 60 % 60, compTime.sleepTime % 60);
-		ListView_SetItemText(g_hwndLviTime, 0, 3, buf);
+		ListView_SetItemText(hwndTvi, 0, 3, buf);
 	}
 
 	return addedCount;
@@ -152,27 +178,13 @@ void MainWindow_OnCreate(HWND hWnd) {
 	g_hwndStatusBar = CreateStatusWindow(WS_CHILD | WS_VISIBLE, NULL, hWnd, ID_MAIN_STATUSBAR);
 
 	g_hwndLviTime = CreateWindowEx(0, WC_LISTVIEW, NULL,
-		WS_CHILD | WS_VISIBLE | LVS_REPORT | WS_TABSTOP,
+		WS_CHILD | WS_VISIBLE | LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | WS_TABSTOP,
 		0, 0, 100, 100,
 		hWnd, (HMENU)ID_TIME_LISTBOX, Application::GetInstance(), 0);
-	// Add columns
-	LV_COLUMN col = {0};
-	col.cx = 70;
-	col.cxDefault = 70;
-	col.fmt = LVCFMT_CENTER;
-	col.mask = LVCF_WIDTH | LVCF_TEXT | LVCF_FMT;
-	col.cchTextMax = 10;
-	col.pszText = TEXT("Date");
-	ListView_InsertColumn(g_hwndLviTime, 0, &col);
-	col.pszText = TEXT("Active");
-	ListView_InsertColumn(g_hwndLviTime, 1, &col);
-	col.pszText = TEXT("Passive");
-	ListView_InsertColumn(g_hwndLviTime, 2, &col);
-	col.pszText = TEXT("Sleep");
-	ListView_InsertColumn(g_hwndLviTime, 3, &col);
+	ListView_SetExtendedListViewStyleEx(g_hwndLviTime, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
 	Document::LoadTime();
-	FillTable(Document::GetCompTimeStore());
+	FillTable(g_hwndLviTime, Document::GetCompTimeStore(), true);
 }
 
 void MainWindow_OnDestroy(HWND hWnd) {
@@ -209,7 +221,7 @@ void MainWindow_OnSize(HWND hWnd, int cx, int cy, int action) {
 		GetWindowRect(g_hwndToolBar, &rc);
 		toolbarHeight = rc.bottom - rc.top;
 	}
-	
+
 	int filterHeight = 0;
 	if (g_hwndDateFilterWnd) {
 		GetWindowRect(g_hwndDateFilterWnd, &rc);
@@ -217,7 +229,7 @@ void MainWindow_OnSize(HWND hWnd, int cx, int cy, int action) {
 		MoveWindow(g_hwndDateFilterWnd, 0, toolbarHeight, cx, filterHeight, TRUE);
 	}
 
-	int clientHeight = cy - toolbarHeight - filterHeight - statusbarHeight; 
+	int clientHeight = cy - toolbarHeight - filterHeight - statusbarHeight;
 	if (g_hwndLviTime) {
 		MoveWindow(g_hwndLviTime, 0, filterHeight + toolbarHeight, lviWidth, clientHeight, TRUE);
 	}
@@ -230,7 +242,7 @@ void MainWindow_OnSize(HWND hWnd, int cx, int cy, int action) {
 }
 
 void MainWindow_OnPaint(HWND hWnd, HDC hDC) {
-	
+
 }
 
 void MainWindow_OnTray(HWND hWnd, int notifyEvent, int iconId, WPARAM wParam) {
@@ -290,7 +302,7 @@ void MainWindow_OnPowerBroadcast(HWND hWnd, int eventId, LPARAM param) {
 	wsprintf(buf, TEXT("%02d:%02d:%02d:%03d %04d/%02d/%02d %d %d"), st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
 		st.wYear, st.wMonth, st.wDay,
 		eventId, param);
-	
+
 	Log(buf);
 	/*
 	10:28:26:950 2014/03/11 0 1
@@ -312,7 +324,7 @@ void MainWindow_OnPowerBroadcast(HWND hWnd, int eventId, LPARAM param) {
 		break;
 	case PBT_APMRESUMESUSPEND:
 		DWORD ticksAfterSleep;
-		
+
 		ticksAfterSleep = GetTickCount();
 
 		g_sleepTime += (ticksAfterSleep - ticksBeforeSleep) / 1000;

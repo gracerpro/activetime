@@ -49,7 +49,7 @@ TCHAR* GetNearExePath(TCHAR* path, const TCHAR* name) {
 		--p;
 	}
 	p[1] = 0;
-	_tcscat_s(path, MAX_PATH, name); // MAX_PATH * sizeof(TCHAR)
+	_tcscat(path, name); // MAX_PATH * sizeof(TCHAR)
 
 	return path;
 }

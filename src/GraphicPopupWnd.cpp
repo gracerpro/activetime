@@ -4,28 +4,21 @@
 
 namespace GraphicPopupWnd {
 
-LRESULT WINAPI GraphicPopupWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT WINAPI GraphicPopupDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GraphicPopupWnd_OnCommand(int id, int notifyCode, HWND hwndCtrl);
 
 
 HWND CreateGraphicPopupWnd(HWND hParent) {
 	HWND hWnd;
 
-	hWnd = CreateDialog(Application::GetInstance(), MAKEINTRESOURCE(IDD_GRAPHIC_POPUP), hParent, (DLGPROC)GraphicPopupWndProc);
+	hWnd = CreateDialog(Application::GetInstance(), MAKEINTRESOURCE(IDD_GRAPHIC_POPUP), hParent,
+		(DLGPROC)GraphicPopupDlgProc);
 
 	return hWnd;
 }
 
-LRESULT WINAPI GraphicPopupWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT WINAPI GraphicPopupDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
-	case WM_PAINT:
-		PAINTSTRUCT ps;
-		HDC hDC;
-
-		hDC = BeginPaint(hWnd, &ps);
-
-		EndPaint(hWnd, &ps);
-		break;
 	case WM_COMMAND:
 		GraphicPopupWnd_OnCommand(LOWORD(wParam), HIWORD(wParam), (HWND)lParam);
 		break;

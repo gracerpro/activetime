@@ -22,12 +22,11 @@ void SystemTimeAdd(SYSTEMTIME& st, int secondCount) {
 	time_t seconds = mktime(&sttm);
 	seconds += secondCount;
 
-	tm timeinfo;
-	localtime_s(&timeinfo, &seconds);
+	tm* timeinfo = localtime(&seconds);
 
-	st.wDay   = timeinfo.tm_mday;
-	st.wMonth = timeinfo.tm_mon + 1;
-	st.wYear  = timeinfo.tm_year + 1900;
+	st.wDay   = timeinfo->tm_mday;
+	st.wMonth = timeinfo->tm_mon + 1;
+	st.wYear  = timeinfo->tm_year + 1900;
 }
 
 int DaysInMonth(int month, int year) {
@@ -121,9 +120,9 @@ TCHAR* DateToStr(Date date) {
 
 	time_t t = mktime(&timeinfo);
 	t += date * 60 * 60 * 24;
-	
-	localtime_s(&timeinfo, &t);
-	_tcsftime(buf, 100, TEXT("%d/%m/%Y"), &timeinfo);
+
+	tm* pTm = localtime(&t);
+	_tcsftime(buf, 100, TEXT("%d/%m/%Y"), pTm);
 
 	return buf;
 }
@@ -134,7 +133,7 @@ Date SystemTimeToDate(SYSTEMTIME& st) {
 	tmCur.tm_mon  = st.wMonth - 1;
 	tmCur.tm_mday = st.wDay;
 	time_t timeCur = mktime(&tmCur);
-	
+
 	tm tmSince = {0};
 	tmSince.tm_mday = 1;
 	tmSince.tm_year = YEAR_SINCE - 1900;

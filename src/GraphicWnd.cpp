@@ -46,7 +46,7 @@ LRESULT WINAPI GraphicWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 	case WM_MOUSEMOVE:
 		GraphicWnd_OnMouseMove(wParam, LOWORD(lParam), HIWORD(lParam));
 
-	//	SendMessage(g_hwndTooltip, TTM_RELAYEVENT, 0, (LPARAM) (LPMSG) &msg); 
+	//	SendMessage(g_hwndTooltip, TTM_RELAYEVENT, 0, (LPARAM) (LPMSG) &msg);
 		break;
 	//case WM_ERASEBKGND:
 	//	return (LRESULT)GraphicWnd_OnEraseBkgnd(hWnd, (HDC)wParam);
@@ -56,7 +56,7 @@ LRESULT WINAPI GraphicWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		g_hWnd = hWnd;
 		return TRUE;
 	case WM_COMMAND:
-		
+
 		break;
 	//default:
 	//	return DefDlgProc(hWnd, uMsg, wParam, lParam);
@@ -109,7 +109,7 @@ static void DrawAxes(HDC hDC, RECT& clientRect) {
 	TCHAR timeTitle[] = TEXT("time, (h)");
 	TextOut(hDC, 5, 5, timeTitle, 9);
 	TCHAR dateTitle[] = TEXT("date, (d)");
-	TextOut(hDC, clientRect.right - 50, clientRect.bottom - textHeight, dateTitle, 9);
+	TextOut(hDC, clientRect.right - 60, clientRect.bottom - textHeight, dateTitle, 9);
 }
 
 static void DrawHorizontalLines(HDC hDC, RECT& clientRect, int gistohramHeight) {
@@ -125,7 +125,7 @@ static void DrawHorizontalLines(HDC hDC, RECT& clientRect, int gistohramHeight) 
 		MoveToEx(hDC, margin + 1, y2, NULL);
 		LineTo(hDC, clientRect.right - margin, y2);
 
-		_itot_s(i, buf, sizeof(buf), 10);
+		_itot(i, buf, 10);
 		TextOut(hDC, 5, y2, buf, _tcslen(buf));
 	}
 	SelectObject(hDC, penHorzOld);
@@ -133,7 +133,7 @@ static void DrawHorizontalLines(HDC hDC, RECT& clientRect, int gistohramHeight) 
 }
 
 int GetVertLineCount(Date minDate, Date maxDate) {
-	int count = 1; 
+	int count = 1;
 	int daysCount = maxDate - minDate;
 
 	if (daysCount > 7) {
@@ -165,14 +165,20 @@ static void DrawVerticalLines(HDC hDC, RECT& clientRect, int gistohramWidth, int
 	float dx = gistohramWidth * lineCount / (float)(daysCount);
 	float x = dx + margin;
 
+	int day = lineCount;
 	while (x < gistohramWidth) {
 		MoveToEx(hDC, static_cast<int>(x), margin, NULL);
 		LineTo(hDC, static_cast<int>(x), clientRect.bottom - margin);
 
-		x += dx;
+		_itot(day, buf, 10);
+		// week   1 ... 7
+		// month  1 ... 31
+		// year   1 ... 12
+		// range ...
+		TextOut(hDC, static_cast<int>(x), clientRect.bottom - margin, buf, _tcslen(buf));
 
-	//	_itot(i, buf, 10);
-	//	TextOut(hDC, 5, y2, buf, _tcslen(buf));
+		x += dx;
+		day += lineCount;
 	}
 	SelectObject(hDC, penHorzOld);
 	DeleteObject(penHorz);
@@ -206,7 +212,7 @@ static CompTimeStoreConstIter FindStartDate(const CompTimeStore& timeStore, Date
 */
 static void DrawHostogram(HDC hDC, RECT& clientRect, int gistohramWidth, int gistohramHeight,
 	const CompTimeStore& timeStore, Date minDate, Date maxDate ) {
-	
+
 	int dayCount = maxDate - minDate;
 	if (dayCount <= 1) {
 		dayCount = 30; // TODO: get days in month
@@ -218,14 +224,15 @@ static void DrawHostogram(HDC hDC, RECT& clientRect, int gistohramWidth, int gis
 	const int maxHours = 24;
 	float yGridLenInvert = 1 / (float)maxHours * gistohramHeight;
 	float dx = gistohramWidth / (float)dayCount;
-	float x = margin;
+	float x = margin + dx;
 	int y = clientRect.bottom - margin;
+	bool bBeginLine = true;
 
 	CompTimeStoreConstIter iter = FindStartDate(timeStore, minDate, maxDate);
 	if (iter == timeStore.end()) {
 		return;
 	}
-	for (Date i = minDate; i <= maxDate; ++i, x += dx) {
+	for (Date i = minDate; i < maxDate; ++i, x += dx) {
 		//  ; iter != timeStore.end(); ++iter, x += dx
 		if (iter == timeStore.end()) {
 			break;
@@ -234,9 +241,10 @@ static void DrawHostogram(HDC hDC, RECT& clientRect, int gistohramWidth, int gis
 		const stCompTime& compTime = (*iter).second;
 
 		if (date != i) {
+			bBeginLine = true;
 			continue;
 		}
-		
+
 		if (date == g_selectedDate) {
 			selectedDayX = x;
 			//continue;
@@ -247,19 +255,40 @@ static void DrawHostogram(HDC hDC, RECT& clientRect, int gistohramWidth, int gis
 		}
 
 		int yTop = y - static_cast<int>(hours * yGridLenInvert);
+		int xMid = static_cast<int>(x);
 
-		RectangleWare(hDC, static_cast<int>(x), y, static_cast<int>(x + dx), yTop);
-		//int xMid = x + dx / 2;
-		//Rectangle(hDC, xMid - 2, yTop - 2, xMid + 2, yTop + 2);
+		//RectangleWare(hDC, static_cast<int>(x), y, static_cast<int>(x + dx), yTop);
+		if (bBeginLine) {
+			MoveToEx(hDC, xMid, yTop, NULL);
+			bBeginLine = false;
+		}
+		else {
+			LineTo(hDC, xMid, yTop);
+		}
+		Rectangle(hDC, xMid - 2, yTop - 2, xMid + 2, yTop + 2);
 
 		TCHAR buf[20];
-		float modInt, modFloat;
+		double modInt, modFloat;
 		modFloat = modf(hours, &modInt);
-		_stprintf_s(buf, TEXT("%d:%02d"), sizeof(buf), static_cast<int>(modInt), static_cast<int>(modFloat * 60));
+		_stprintf(buf, TEXT("%d:%02d"), static_cast<int>(modInt), static_cast<int>(modFloat * 60));
 		TextOut(hDC, static_cast<int>(x), yTop - textHeight, buf, _tcslen(buf));
 
 		iter++;
 	}
+
+	if (selectedDayX > 0) {
+		CompTimeStoreConstIter findIter = timeStore.find(g_selectedDate);
+		Date date = (*findIter).first;
+		const stCompTime& compTime = (*findIter).second;
+
+		float hours = compTime.ActiveToHours();
+		int yTop = y - static_cast<int>(hours * yGridLenInvert);
+		int xMid = static_cast<int>(selectedDayX);
+		Rectangle(hDC, xMid - 5, yTop - 5, xMid + 5, yTop + 5);
+	}
+
+	//MoveToEx(hDC, margin + dx * dayCount, margin, NULL);
+	//LineTo(hDC, margin + dx * dayCount, clientRect.bottom - margin);
 
 	SelectObject(hDC, penGistogramOld);
 	DeleteObject(penGistogram);
@@ -274,7 +303,7 @@ void DrawCompTimeStore(HWND hWnd, HDC hDC, const CompTimeStore& timeStore, Date 
 
 	GetClientRect(hWnd, &clientRect);
 	SetBkMode(hDC, TRANSPARENT);
-	
+
 	// element's count / gistogramWidth;
 	//int dx = 40;
 	int gistohramHeight = clientRect.bottom - 2 * margin;
@@ -285,11 +314,9 @@ void DrawCompTimeStore(HWND hWnd, HDC hDC, const CompTimeStore& timeStore, Date 
 	DrawHorizontalLines(hDC, clientRect, gistohramHeight);
 
 	DrawVerticalLines(hDC, clientRect, gistohramWidth, gistohramHeight, minDate, maxDate);
-	
+
 	if (!timeStore.empty()) {
-		// входит ли выбранный диапазон в хранилище
 		//RangeInTimeStorage(timeStore, minDate, maxDate);
-		//
 		DrawHostogram(hDC, clientRect, gistohramWidth, gistohramHeight, timeStore, minDate, maxDate);
 	}
 
@@ -306,20 +333,20 @@ void DrawCompTimeStore(HWND hWnd, HDC hDC, const CompTimeStore& timeStore, Date 
 		SelectObject(hDC, hSelectedPenOld);
 		DeleteObject(hSelectedPen);
 	}*/
-	
-	TCHAR* pStr;
+
+/*	TCHAR* pStr;
 
 	pStr = SystemTime::DateToStr(minDate);
 	TextOut(hDC, margin, clientRect.bottom - textHeight - 5, pStr, _tcslen(pStr));
 	pStr = SystemTime::DateToStr(maxDate);
-	TextOut(hDC, clientRect.right - margin - 100, clientRect.bottom - textHeight - 5, pStr, _tcslen(pStr));
+	TextOut(hDC, clientRect.right - margin - 100, clientRect.bottom - textHeight - 5, pStr, _tcslen(pStr));*/
 }
 
 void GraphicWnd_OnPaint(HWND hWnd, HDC hDC) {
 	RECT rc;
 
 	GetClientRect(hWnd, &rc);
-	
+
 	MoveToEx(hDC, 0, 0, NULL);
 	LineTo(hDC, rc.right - 1, 0);
 	LineTo(hDC, rc.right - 1, rc.bottom - 1);
@@ -344,7 +371,7 @@ HBRUSH GraphicWnd_OnEraseBkgnd(HWND hWnd, HDC hDC) {
 }
 
 void GraphicWnd_OnMouseMove(int flags, int x, int y) {
-	
+
 }
 
 }
