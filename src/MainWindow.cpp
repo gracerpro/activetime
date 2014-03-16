@@ -38,6 +38,7 @@ void MainWindow_OnPowerBroadcast(HWND hWnd, int eventId, LPARAM param);
 void MainWindow_OnClose(HWND hWnd);
 void MainWindow_OnGetMinMaxInfo(LPMINMAXINFO mmi);
 void MainWindow_OnMouseMove(int flags, int x, int y);
+void MainWindow_OnActivate(HWND hWnd);
 
 bool RegisterMainWindowClass() {
 	WNDCLASS wc = {0};
@@ -107,7 +108,6 @@ void MainWindow_OnCommand(HWND hWnd, int id, int notifyCode, HWND hWndCtrl) {
 	case IDC_APP_EXIT:
 		MainWindow_OnAppExit();
 		break;
-	// tray
 	case IDC_SHOW_HIDE:
 		MainWindow_OnShowHide();
 		break;
@@ -118,7 +118,6 @@ int FillTable(HWND hwndTvi, const CompTimeStore& timeStore, bool rebuild) {
 	int addedCount = 0;
 	LV_ITEM item = {0};
 	LV_COLUMN col = {0};
-	TCHAR buf[200];
 
 	if (!IsWindow(hwndTvi)) {
 		return 0;
@@ -153,15 +152,12 @@ int FillTable(HWND hwndTvi, const CompTimeStore& timeStore, bool rebuild) {
 		item.lParam = itemDate;
 		ListView_InsertItem(hwndTvi, &item);
 
-		wsprintf(buf, TEXT("%02d:%02d:%02d"), compTime.activeTime / 60 / 60,
-			compTime.activeTime / 60 % 60, compTime.activeTime % 60);
-		ListView_SetItemText(hwndTvi, 0, 1, buf);
-		wsprintf(buf, TEXT("%02d:%02d:%02d"), compTime.passiveTime / 60 / 60,
-			compTime.passiveTime / 60 % 60, compTime.passiveTime % 60);
-		ListView_SetItemText(hwndTvi, 0, 2, buf);
-		wsprintf(buf, TEXT("%02d:%02d:%02d"), compTime.sleepTime / 60 / 60,
-			compTime.sleepTime / 60 % 60, compTime.sleepTime % 60);
-		ListView_SetItemText(hwndTvi, 0, 3, buf);
+		LPTSTR szActiveTime = SystemTime::TimeToStr(compTime.activeTime);
+		ListView_SetItemText(hwndTvi, 0, 1, szActiveTime);
+		LPTSTR szPassiveTime = SystemTime::TimeToStr(compTime.passiveTime);
+		ListView_SetItemText(hwndTvi, 0, 2, szPassiveTime);
+		LPTSTR szSleepTime = SystemTime::TimeToStr(compTime.sleepTime);
+		ListView_SetItemText(hwndTvi, 0, 3, szSleepTime);
 	}
 
 	return addedCount;
@@ -203,6 +199,7 @@ void MainWindow_OnSize(HWND hWnd, int cx, int cy, int action) {
 	RECT rc;
 
 	if (action == SIZE_MINIMIZED) {
+		Application::SwapRam();
 		MainWindow_OnClose(hWnd);
 		return; // do not process
 	}
@@ -260,7 +257,7 @@ void MainWindow_OnTray(HWND hWnd, int notifyEvent, int iconId, WPARAM wParam) {
 
 		DestroyMenu(hMenu);
 	}
-
+#ifdef _DEBUG
 	TCHAR buf[200];
 
 	SYSTEMTIME st;
@@ -272,6 +269,7 @@ void MainWindow_OnTray(HWND hWnd, int notifyEvent, int iconId, WPARAM wParam) {
 		st.wYear, st.wMonth, st.wDay, notifyEvent);
 
 	Log(buf);
+#endif
 }
 
 void MainWindow_OnNotify(int id, LPNMHDR pNMDR) {
@@ -353,6 +351,16 @@ void MainWindow_OnGetMinMaxInfo(LPMINMAXINFO mmi) {
 	mmi->ptMinTrackSize.y = 300;
 }
 
+void MainWindow_OnActivate(HWND hWnd) {
+	TCHAR buf[200];
+	DWORD systemTime = GetTickCount() / 1000;
+
+	_tcscpy(buf, g_Title);
+	_tcscat(buf, TEXT(" "));
+	_tcscat(buf, SystemTime::TimeToStr(systemTime));
+	SetWindowText(hWnd,  buf);
+}
+
 LRESULT WINAPI MainWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	switch (uMsg) {
 	case WM_PAINT:
@@ -391,6 +399,9 @@ LRESULT WINAPI MainWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 		break;
 	case WM_DESTROY:
 		MainWindow_OnDestroy(hWnd);
+		break;
+	case WM_ACTIVATE:
+		MainWindow_OnActivate(hWnd);
 		break;
 	default:
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);

@@ -22,6 +22,8 @@ int Run(HINSTANCE hInst);
 
 TCHAR* GetTitle();
 
+int SwapRam();
+
 int MessageBoxMy(LPCTSTR message, int flags = MB_OK | MB_ICONINFORMATION);
 
 }

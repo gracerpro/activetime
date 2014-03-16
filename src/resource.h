@@ -16,10 +16,11 @@
 
 #define IDC_LST_MONTHS                  1000
 
-#define IDC_TVI_TIME                    1009
+#define IDC_LVI_TIME                    1009
 #define IDC_EDT_ACTIVE_TIME             1010
 #define IDC_EDT_PASSIVE_TIME            1011
 #define IDC_EDT_SLEEP_TIME              1012
+#define IDC_EDT_DATE                    1013
 
 #define IDC_RBN_CURRENT_WEEK            1100
 #define IDC_RBN_CURRENT_MONTH           1101

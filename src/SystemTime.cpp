@@ -111,7 +111,7 @@ Date GetCurrentDate() {
 	return Date(diff / 60 / 60 / 24); // skip time
 }
 
-TCHAR* DateToStr(Date date) {
+LPTSTR DateToStr(Date date) {
 	static TCHAR buf[100];
 
 	tm timeinfo = {0};
@@ -125,6 +125,45 @@ TCHAR* DateToStr(Date date) {
 	_tcsftime(buf, 100, TEXT("%d/%m/%Y"), pTm);
 
 	return buf;
+}
+
+LPTSTR TimeToStr(UINT32 time) {
+	static TCHAR buf[100];
+
+	wsprintf(buf, TEXT("%02d:%02d:%02d"), time / 60 / 60, time / 60 % 60, time % 60);
+
+	return buf;
+}
+
+UINT32 StrToTime(LPCTSTR time) {
+	LPCTSTR p = time;
+	UINT32 res = 0;
+	TCHAR buf[20];
+
+	LPCTSTR pHourBeg = time;
+	LPCTSTR pHourEnd = _tcschr(pHourBeg, ':');
+	if (!pHourEnd) {
+		return res;
+	}
+	int len = pHourEnd - pHourBeg;
+	_tcsncpy(buf, pHourBeg, len);
+	buf[len] = 0;
+	res = _ttoi(buf) * 60 * 60; // hours
+
+	LPCTSTR pMinBeg = pHourEnd + 1;
+	LPCTSTR pMinEnd = _tcschr(pMinBeg, ':');
+	if (!pMinEnd) {
+		return res;
+	}
+	len = pMinEnd - pMinBeg;
+	_tcsncpy(buf, pMinBeg, len);
+	buf[len] = 0;
+	res += _ttoi(buf) * 60; // minutes
+
+	LPCTSTR pSecBeg = pMinEnd + 1;
+	res += _ttoi(pSecBeg);
+
+	return res;
 }
 
 Date SystemTimeToDate(SYSTEMTIME& st) {

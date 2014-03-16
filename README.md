@@ -6,6 +6,8 @@ the document etc.), *passive time* represents the time when user don't work
 on computer (away from keyboard, sees the films etc.), *sleep time* represents
 time when computer is in sleep mode.
 
+*Divided time* -- time when begin next worked day. For me it is 03:00.
+
 ![mainwindow](https://github.com/gracerpro/activetime/releases/download/1.0/ActiveTime.PNG)
 
 

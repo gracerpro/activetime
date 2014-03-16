@@ -7,6 +7,9 @@ namespace Document {
 
 static CompTimeStore g_compTime;
 
+bool GetDivTime(stCompTime& curCompTime, stCompTime& beforeTime, stCompTime& afterTime);
+
+
 CompTimeStore& GetCompTimeStore() {
 	return g_compTime;
 }
@@ -15,7 +18,7 @@ int LoadTime() {
 	TCHAR fileName[MAX_PATH];
 	FILE* f = NULL;
 	stCompTimeStore timeStore;
-	stFileHear header;
+	stFileHead header;
 
 	GetNearExePath(fileName, TEXT("comptime.dat"));
 
@@ -135,15 +138,26 @@ int SaveTime() {
 	timeCur.compTime.sleepTime   = g_sleepTime;
 
 #ifdef _DEBUG
+	g_compTime[68] = stCompTime(7123, 0, 0);
+	g_compTime[59] = stCompTime(12123, 0, 0);
+	g_compTime[60] = stCompTime(17123, 0, 0);
+	g_compTime[61] = stCompTime(3123, 0, 0);
+	g_compTime[62] = stCompTime(12123, 0, 0);
+	g_compTime[63] = stCompTime(13123, 0, 0);
+	g_compTime[64] = stCompTime(8123, 0, 0);
 	g_compTime[65] = stCompTime(7123, 0, 0);
 	g_compTime[66] = stCompTime(11321, 0, 0);
 	g_compTime[67] = stCompTime(14412, 0, 0);
+	g_compTime[68] = stCompTime(12412, 0, 0);
+	g_compTime[69] = stCompTime(19412, 0, 0);
+	g_compTime[70] = stCompTime(20412, 0, 0);
+	g_compTime[71] = stCompTime(4412, 0, 0);
 #endif
 
-	stFileHear header;
+	stFileHead header;
 
 	memcpy(header.signature, APP_SIGNATURE, sizeof(header.signature));
-	header.dataOffset = sizeof(stFileHear);
+	header.dataOffset = sizeof(stFileHead);
 
 	fwrite(&header, sizeof(header), 1, f);
 
@@ -155,17 +169,15 @@ int SaveTime() {
 		Date lastDate = (*iterEnd).first;
 		stCompTime& lastTime = (*iterEnd).second;
 
-		if (lastDate == timeCur.date) {
-			lastTime.activeTime  += timeCur.compTime.activeTime;
-			lastTime.passiveTime += timeCur.compTime.passiveTime;
-			lastTime.sleepTime   += timeCur.compTime.sleepTime;
+		stCompTime ctBeforeDiv, ctAfterDiv;
+
+		if (GetDivTime(timeCur.compTime, ctBeforeDiv, ctAfterDiv)) {
+			AddTimeToStore(timeCur.date - 1, ctBeforeDiv);
+			AddTimeToStore(timeCur.date, ctAfterDiv);
 		}
-		std::pair<Date, stCompTime> value = std::pair<Date, stCompTime>(timeCur.date, timeCur.compTime);
-		std::pair<CompTimeStore::iterator, bool> insertRes = g_compTime.insert(value);
-
-	/*	if (insertRes.second) {
-
-		}*/
+		else {
+			AddTimeToStore(timeCur.date, timeCur.compTime);
+		}
 
 		CompTimeStore::const_iterator iter = g_compTime.begin();
 		for ( ; iter != g_compTime.end(); ++iter) {
@@ -182,6 +194,59 @@ int SaveTime() {
 	SaveLastTickCount(tickCount);
 
 	return 0;
+}
+
+/*
+ * Return true if current time will be divided
+ */
+bool GetDivTime(stCompTime& curCompTime, stCompTime& beforeTime, stCompTime& afterTime) {
+	time_t curTime = time(NULL);
+	time_t startTime = curTime - curCompTime.activeTime; // TODO: total time
+	tm  tmDiv = {0};
+	tm  tmCur = {0};
+	tm  tmStart = {0};
+	tm* ptmCur = localtime(&curTime);
+	if (ptmCur) {
+		memcpy(&tmCur, ptmCur, sizeof(tm));
+	}
+	tm* ptmStart = localtime(&startTime);
+	if (ptmStart) {
+		memcpy(&tmStart, ptmStart, sizeof(tm));
+	}
+
+	tmDiv.tm_year = tmCur.tm_year;
+	tmDiv.tm_mon  = tmCur.tm_mon;
+	tmDiv.tm_mday = tmCur.tm_wday;
+
+	time_t timeDiv = mktime(&tmDiv);
+
+	if (tmCur.tm_mday != tmStart.tm_mday) {
+		int secondsAfterDivTime = static_cast<int>(curTime - timeDiv);
+		int secondsBeforeDivTime = static_cast<int>(timeDiv - startTime);
+
+		beforeTime.activeTime  = secondsBeforeDivTime;
+		beforeTime.passiveTime = curCompTime.passiveTime; // TODO
+		beforeTime.sleepTime   = curCompTime.sleepTime;   // TODO
+
+		return true;
+	}
+
+	return false;
+}
+
+bool AddTimeToStore(Date date, stCompTime& compTime) {
+	CompTimeStoreIter findIter = g_compTime.find(date);
+
+	if (findIter != g_compTime.end()) {
+		stCompTime& ct = (*findIter).second;
+
+		compTime.activeTime  += ct.activeTime;
+		compTime.passiveTime += ct.passiveTime;
+		compTime.sleepTime   += ct.sleepTime;
+	}
+	g_compTime[date] = compTime;
+
+	return true;
 }
 
 void FreeTime() {

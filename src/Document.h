@@ -24,6 +24,7 @@ struct stCompTime {
 public:
 	float ActiveToHours() const { return activeTime / (60 * 60.0f); }
 	float ActiveToDays() const { return activeTime / (60 * 60 * 24.0f); }
+	UINT32 TotalTime() const { return activeTime + passiveTime + sleepTime; }
 };
 
 struct stCompTimeStore {
@@ -31,7 +32,7 @@ struct stCompTimeStore {
 	stCompTime  compTime;
 };
 
-struct stFileHear {
+struct stFileHead {
 	char     signature[2];
 	uint16_t dataOffset;
 };
@@ -47,6 +48,8 @@ int SaveTime();
 void FreeTime();
 
 void CleanLastTickCount();
+
+bool AddTimeToStore(Date date, stCompTime& compTime);
 
 CompTimeStore& GetCompTimeStore();
 

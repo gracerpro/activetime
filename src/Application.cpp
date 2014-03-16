@@ -10,20 +10,24 @@
 #include <CommCtrl.h>
 #include <tchar.h>
 #include <locale.h>
-
-using namespace MainWindow;
-using namespace GraphicWnd;
-using namespace GraphicPopupWnd;
+#include <WinBase.h>
+#include <GdiPlus.h>
 
 UINT32 g_sleepTime;
 UINT32 g_passiveTime;
 
 namespace Application {
 
+using namespace MainWindow;
+using namespace GraphicWnd;
+using namespace GraphicPopupWnd;
+using namespace Gdiplus;
+
 static HINSTANCE g_hInst = NULL;
-static HWND g_hGraphicWnd = NULL;
-static HWND g_hMainWnd = NULL;
-static HWND g_hGraphicPopupWnd = NULL;
+static HWND      g_hGraphicWnd = NULL;
+static HWND      g_hMainWnd = NULL;
+static HWND      g_hGraphicPopupWnd = NULL;
+static ULONG_PTR g_GdiTocken = NULL;
 
 int InitInstance(HINSTANCE hInst) {
 	INITCOMMONCONTROLSEX icce;
@@ -39,10 +43,17 @@ int InitInstance(HINSTANCE hInst) {
 	g_sleepTime   = 0;
 	g_passiveTime = 0;
 
+	GdiplusStartupInput gdiplusInput;
+	if (Status::Ok != GdiplusStartup(&g_GdiTocken, &gdiplusInput, NULL)) {
+		LogErr("Failed to load Gdiplus");
+		return -1;
+	}
+
 	return 0;
 }
 
 int ExitInstance(HINSTANCE hInst) {
+	GdiplusShutdown(g_GdiTocken);
 
 	return 0;
 }
@@ -119,6 +130,15 @@ HINSTANCE GetInstance() {
 
 void SetInstance(HINSTANCE hInst) {
 	g_hInst = hInst;
+}
+
+int SwapRam() {
+	HANDLE hProcess = OpenProcess(PROCESS_SET_QUOTA, FALSE, GetCurrentProcessId());
+
+	int res = SetProcessWorkingSetSize(hProcess, -1, -1);
+	CloseHandle(hProcess);
+
+	return res;
 }
 
 }

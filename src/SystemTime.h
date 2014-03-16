@@ -12,8 +12,12 @@ typedef UINT32 Date;
 
 namespace SystemTime {
 	Date GetCurrentDate();
-	TCHAR* DateToStr(Date date);
+
+	LPTSTR DateToStr(Date date);
 	Date SystemTimeToDate(SYSTEMTIME& st);
+
+	LPTSTR TimeToStr(UINT32 time);
+	UINT32 StrToTime(LPCTSTR time);
 
 	BOOL GetCurrentWeekRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd);
 	BOOL GetCurrentMonthRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd);
