@@ -44,7 +44,7 @@ int InitInstance(HINSTANCE hInst) {
 	g_passiveTime = 0;
 
 	GdiplusStartupInput gdiplusInput;
-	if (Status::Ok != GdiplusStartup(&g_GdiTocken, &gdiplusInput, NULL)) {
+	if (Gdiplus::Ok != GdiplusStartup(&g_GdiTocken, &gdiplusInput, NULL)) {
 		LogErr("Failed to load Gdiplus");
 		return -1;
 	}

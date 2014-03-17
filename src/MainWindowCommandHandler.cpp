@@ -31,12 +31,40 @@ void MainWindow_OnAppExit() {
 	MainWindow_OnDestroy(Application::GetMainWindow());
 }
 
-void MainWindow_OnViewToolbar() {
+static void ShowHideToolBars(HWND hWndBar, int id) {
+	HMENU hMenu = GetMenu(Application::GetMainWindow());
+	UINT cmdShow, cmdCheck;
 
+	if (IsWindowVisible(hWndBar)) {
+		cmdShow =  SW_HIDE;
+		cmdCheck = MF_UNCHECKED;
+	}
+	else {
+		cmdShow =  SW_SHOW;
+		cmdCheck = MF_CHECKED;
+	}
+
+	ShowWindow(hWndBar, cmdShow);
+	CheckMenuItem(hMenu, id, cmdCheck);
+
+	ResizeWindow(Application::GetMainWindow());
+	InvalidateRect(Application::GetMainWindow(), NULL, FALSE);
+}
+
+void MainWindow_OnViewToolbar() {
+	ShowHideToolBars(GetToolBar(), IDC_VIEW_TOOLBAR);
 }
 
 void MainWindow_OnViewStatusbar() {
+	ShowHideToolBars(GetStatusBar(), IDC_VIEW_STATUSBAR);
+}
 
+void MainWindow_OnViewGrid() {
+	HMENU hMenu = GetMenu(Application::GetMainWindow());
+	UINT state = GetMenuState(hMenu, IDC_VIEW_GRID, MF_BYCOMMAND);
+	UINT newState = state & MF_CHECKED ? MF_UNCHECKED : MF_CHECKED;
+	CheckMenuItem(hMenu, IDC_VIEW_GRID, newState);
+	InvalidateRect(Application::GetGraphicWindow(), NULL, FALSE);
 }
 
 void MainWindow_OnHelpHelp() {

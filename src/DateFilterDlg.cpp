@@ -86,34 +86,46 @@ void DateFilterDlg_OnSelectRangeDate(HWND hWnd, int id) {
 	switch (id) {
 	case IDC_RBN_CURRENT_WEEK:
 		SystemTime::GetCurrentWeekRange(stMin, stMax);
-		DateTime_SetSystemtime(hDtpMin, GDT_VALID, &stMin);
-		DateTime_SetSystemtime(hDtpMax, GDT_VALID, &stMax);
 		break;
 	case IDC_RBN_CURRENT_MONTH:
 		SystemTime::GetCurrentMonthRange(stMin, stMax);
-		DateTime_SetSystemtime(hDtpMin, GDT_VALID, &stMin);
-		DateTime_SetSystemtime(hDtpMax, GDT_VALID, &stMax);
 		break;
 	case IDC_RBN_CURRENT_YEAR:
 		SystemTime::GetCurrentYearRange(stMin, stMax);
-		DateTime_SetSystemtime(hDtpMin, GDT_VALID, &stMin);
-		DateTime_SetSystemtime(hDtpMax, GDT_VALID, &stMax);
 		break;
 	case IDC_RBN_LAST_WEEK:
-
+		SystemTime::GetLastWeekRange(stMin, stMax);
 		break;
 	case IDC_RBN_LAST_MONTH:
-
+		SystemTime::GetLastMonthRange(stMin, stMax);
 		break;
 	case IDC_RBN_LAST_YEAR:
-
+		SystemTime::GetLastYearRange(stMin, stMax);
 		break;
+	default:
+		return;
 	}
 
-	InvalidateRect(Application::GetGraphicWindow(), NULL, TRUE);
+	DateTime_SetSystemtime(hDtpMin, GDT_VALID, &stMin);
+	DateTime_SetSystemtime(hDtpMax, GDT_VALID, &stMax);
+	InvalidateRect(Application::GetGraphicWindow(), NULL, FALSE);
 }
 
 void DateFilterDlg_OnCommand(HWND hWnd, int id, int notifyCode, HWND hWndCtrl) {
+	if (notifyCode == LBN_SELCHANGE && id == IDC_LST_MONTHS) {
+		int month = SendDlgItemMessage(hWnd, IDC_LST_MONTHS, LB_GETCURSEL, 0, 0);
+		if (month != LB_ERR) {
+			HWND hDtpMin = GetDlgItem(hWnd, IDC_DTP_MIN);
+			HWND hDtpMax = GetDlgItem(hWnd, IDC_DTP_MAX);
+			SYSTEMTIME stMin, stMax, st;
+			GetSystemTime(&st);
+			SystemTime::GetMonthRange(stMin, stMax, month + 1, st.wYear);
+			DateTime_SetSystemtime(hDtpMin, GDT_VALID, &stMin);
+			DateTime_SetSystemtime(hDtpMax, GDT_VALID, &stMax);
+			InvalidateRect(Application::GetGraphicWindow(), NULL, FALSE);
+		}
+		return;
+	}
 	switch (id) {
 	case IDC_RBN_CURRENT_WEEK:
 	case IDC_RBN_CURRENT_MONTH:
@@ -140,7 +152,7 @@ void DateFilterDlg_OnNotify(HWND hWnd, int id, LPNMHDR pNmdr) {
 			firstEventTime = secondEventTime;
 
 		//	LPNMDATETIMECHANGE lpChange = (LPNMDATETIMECHANGE)pNmdr;
-			InvalidateRect(Application::GetMainWindow(), NULL, TRUE);
+			InvalidateRect(Application::GetGraphicWindow(), NULL, FALSE);
 		}
 		break;
 	}

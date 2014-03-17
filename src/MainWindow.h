@@ -22,13 +22,15 @@ void MainWindow_OnAppExit();
 
 void MainWindow_OnViewToolbar();
 void MainWindow_OnViewStatusbar();
+void MainWindow_OnViewGrid();
 
 void MainWindow_OnHelpHelp();
 void MainWindow_OnHelpAbout();
 
 void MainWindow_OnShowHide();
 
-
+HWND GetStatusBar();
+HWND GetToolBar();
 int FillTable(HWND hwndTvi, const CompTimeStore& timeStore, bool rebuild);
 
 }

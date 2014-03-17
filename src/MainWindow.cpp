@@ -99,6 +99,9 @@ void MainWindow_OnCommand(HWND hWnd, int id, int notifyCode, HWND hWndCtrl) {
 	case IDC_VIEW_TOOLBAR:
 		MainWindow_OnViewToolbar();
 		break;
+	case IDC_VIEW_GRID:
+		MainWindow_OnViewGrid();
+		break;
 	case IDC_HELP_ABOUT:
 		MainWindow_OnHelpAbout();
 		break;
@@ -208,12 +211,12 @@ void MainWindow_OnSize(HWND hWnd, int cx, int cy, int action) {
 	int toolbarHeight = 0;
 	int statusbarHeight = 0;
 
-	if (g_hwndStatusBar) {
+	if (g_hwndStatusBar && IsWindowVisible(g_hwndStatusBar)) {
 		SendMessage(g_hwndStatusBar, WM_SIZE, 0, 0);
 		GetWindowRect(g_hwndStatusBar, &rc);
 		statusbarHeight = rc.bottom - rc.top;
 	}
-	if (g_hwndToolBar) {
+	if (g_hwndToolBar && IsWindowVisible(g_hwndToolBar)) {
 		SendMessage(g_hwndToolBar, TB_AUTOSIZE, 0, 0);
 		GetWindowRect(g_hwndToolBar, &rc);
 		toolbarHeight = rc.bottom - rc.top;
@@ -283,7 +286,7 @@ void MainWindow_OnNotify(int id, LPNMHDR pNMDR) {
 				CompTimeStoreConstIter iterFind = timeStore.find(date);
 				if (iterFind != timeStore.end()) {
 					GraphicWnd::SetSelectedDate(date);
-					InvalidateRect(GraphicWnd::GetHwnd(), NULL, TRUE);
+					InvalidateRect(Application::GetGraphicWindow(), NULL, FALSE);
 				}
 			}
 		}
@@ -359,6 +362,14 @@ void MainWindow_OnActivate(HWND hWnd) {
 	_tcscat(buf, TEXT(" "));
 	_tcscat(buf, SystemTime::TimeToStr(systemTime));
 	SetWindowText(hWnd,  buf);
+}
+
+HWND GetStatusBar() {
+	return g_hwndStatusBar;
+}
+
+HWND GetToolBar() {
+	return g_hwndToolBar;
 }
 
 LRESULT WINAPI MainWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

@@ -22,4 +22,10 @@ namespace SystemTime {
 	BOOL GetCurrentWeekRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd);
 	BOOL GetCurrentMonthRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd);
 	BOOL GetCurrentYearRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd);
+	void GetLastWeekRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd);
+	void GetLastMonthRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd);
+	void GetLastYearRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd);
+
+	void GetMonthRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd, int month = 0, int year = YEAR_SINCE);
+	void GetYearRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd, int year = YEAR_SINCE);
 }

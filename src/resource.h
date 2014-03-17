@@ -39,6 +39,7 @@
 
 #define IDC_VIEW_STATUSBAR              200
 #define IDC_VIEW_TOOLBAR                201
+#define IDC_VIEW_GRID                   202
 
 #define IDC_HELP_ABOUT                  250
 #define IDC_HELP_HELP                   251

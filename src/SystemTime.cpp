@@ -32,7 +32,7 @@ void SystemTimeAdd(SYSTEMTIME& st, int secondCount) {
 int DaysInMonth(int month, int year) {
 	int arrDays[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-	if (month <= 0 || month > 11) {
+	if (month < 0 || month > 11) {
 		return 0;
 	}
 	if (month == 1 && (year % 400 == 0 || (year % 4 == 0 && year % 100 != 0))) {
@@ -95,6 +95,64 @@ BOOL GetCurrentYearRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd) {
 	return TRUE;
 }
 
+void GetLastWeekRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd) {
+	GetSystemTime(&stEnd);
+	stEnd.wMilliseconds = 0;
+	stEnd.wSecond = 0;
+	stEnd.wMinute = 0;
+	stEnd.wHour = 0;
+
+	stBegin = stEnd;
+	SystemTimeAdd(stBegin, -6 * 60 * 60 * 24);
+}
+
+void GetLastMonthRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd) {
+	GetSystemTime(&stEnd);
+	stEnd.wMilliseconds = 0;
+	stEnd.wSecond = 0;
+	stEnd.wMinute = 0;
+	stEnd.wHour = 0;
+
+	stBegin = stEnd;
+	if (stBegin.wMonth == 1) {
+		stBegin.wMonth = 12;
+		stBegin.wYear--;
+	}
+	else {
+		stBegin.wMonth--;
+	}
+}
+
+void GetLastYearRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd) {
+	GetSystemTime(&stEnd);
+	stEnd.wMilliseconds = 0;
+	stEnd.wSecond = 0;
+	stEnd.wMinute = 0;
+	stEnd.wHour = 0;
+
+	stBegin = stEnd;
+	stBegin.wYear--;
+}
+
+void GetMonthRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd, int month, int year) {
+	memset(&stBegin, 0, sizeof(SYSTEMTIME));
+	stBegin.wMonth = month;
+	stBegin.wYear = year;
+	stBegin.wDay = 1;
+
+	memset(&stEnd, 0, sizeof(SYSTEMTIME));
+	stEnd.wYear = year;
+	stEnd.wMonth = month;
+	stEnd.wDay = DaysInMonth(month - 1, year);
+}
+
+void GetYearRange(SYSTEMTIME& stBegin, SYSTEMTIME& stEnd, int year) {
+	stBegin.wYear = year;
+
+	stEnd.wYear = year;
+	stEnd.wMonth = 11;
+	stEnd.wDay = 31;
+}
 
 Date GetCurrentDate() {
 	time_t timeCur = time(NULL); // 1970/01/01

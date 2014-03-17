@@ -93,6 +93,7 @@ Date GetSelectedDate() {
 	return g_selectedDate;
 }
 
+/*
 void RectangleWare(HDC hDC, int x1, int y1, int x2, int y2) {
 	MoveToEx(hDC, x1, y1, NULL);
 	LineTo(hDC, x2, y1);
@@ -100,6 +101,7 @@ void RectangleWare(HDC hDC, int x1, int y1, int x2, int y2) {
 	LineTo(hDC, x1, y2);
 	LineTo(hDC, x1, y1);
 }
+*/
 
 const int margin = 30;
 const int textHeight = 20;
@@ -109,13 +111,15 @@ static void DrawAxes(HDC hDC, RECT& clientRect) {
 	LineTo(hDC, margin, clientRect.bottom - margin);
 	LineTo(hDC, clientRect.right - margin, clientRect.bottom - margin);
 
+	COLORREF oldColor = SetTextColor(hDC, RGB(0, 200, 0));
 	TCHAR timeTitle[] = TEXT("time, (h)");
 	TextOut(hDC, 5, 5, timeTitle, 9);
 	TCHAR dateTitle[] = TEXT("date, (d)");
 	TextOut(hDC, clientRect.right - 60, clientRect.bottom - textHeight, dateTitle, 9);
+	SetTextColor(hDC, oldColor);
 }
 
-static void DrawHorizontalLines(HDC hDC, RECT& clientRect, int gistohramHeight) {
+static void DrawHorizontalLines(HDC hDC, RECT& clientRect, int gistohramHeight, bool bGrid) {
 	TCHAR buf[10]; // 1, 2, 3 .. 24 numbers
 	HPEN penHorz = CreatePen(PS_DASH, 1, RGB(230, 150, 0));
 	HPEN penHorzOld = (HPEN)SelectObject(hDC, penHorz);
@@ -125,8 +129,10 @@ static void DrawHorizontalLines(HDC hDC, RECT& clientRect, int gistohramHeight) 
 
 	for (size_t i = 3; i <= maxGridY; i += 3) {
 		int y2 = y - i * gistohramHeight / maxGridY;
-		MoveToEx(hDC, margin + 1, y2, NULL);
-		LineTo(hDC, clientRect.right - margin, y2);
+		if (bGrid) {
+			MoveToEx(hDC, margin + 1, y2, NULL);
+			LineTo(hDC, clientRect.right - margin, y2);
+		}
 
 		_itot(i, buf, 10);
 		TextOut(hDC, 5, y2, buf, _tcslen(buf));
@@ -147,7 +153,7 @@ int GetVertLineCount(Date minDate, Date maxDate) {
 			count = 8;
 		}
 		else {
-			count = 16;
+			count = 20;
 		}
 	}
 
@@ -155,7 +161,7 @@ int GetVertLineCount(Date minDate, Date maxDate) {
 }
 
 static void DrawVerticalLines(HDC hDC, RECT& clientRect, int gistohramWidth, int gistohramHeight,
-	Date minDate, Date maxDate) {
+	bool bGrid, Date minDate, Date maxDate) {
 
 	TCHAR buf[10]; // "1", "2" ... "24" numbers
 	HPEN penHorz = CreatePen(PS_DASH, 1, RGB(230, 150, 0));
@@ -174,8 +180,10 @@ static void DrawVerticalLines(HDC hDC, RECT& clientRect, int gistohramWidth, int
 	gistohramWidth += 1;
 	int i = daysCount / lineCount;
 	while (i > 0) {
-		MoveToEx(hDC, static_cast<int>(x), margin, NULL);
-		LineTo(hDC, static_cast<int>(x), clientRect.bottom - margin);
+		if (bGrid) {
+			MoveToEx(hDC, static_cast<int>(x), margin, NULL);
+			LineTo(hDC, static_cast<int>(x), clientRect.bottom - margin);
+		}
 
 		_itot(day, buf, 10);
 		// week   1 ... 7
@@ -225,7 +233,7 @@ static void DrawHostogram(HDC hDC, RECT& clientRect, int gistohramWidth, int gis
 	if (dayCount <= 1) {
 		dayCount = 30; // TODO: get days in month
 	}
-	HPEN penGistogram = CreatePen(PS_SOLID, 3, RGB(0, 0, 255));
+	HPEN penGistogram = CreatePen(PS_SOLID, 1, RGB(0, 0, 255));
 	HPEN penGistogramOld = (HPEN)SelectObject(hDC, penGistogram);
 
 	float selectedDayX = 0;
@@ -241,7 +249,6 @@ static void DrawHostogram(HDC hDC, RECT& clientRect, int gistohramWidth, int gis
 		return;
 	}
 	for (Date i = minDate; i < maxDate; ++i, x += dx) {
-		//  ; iter != timeStore.end(); ++iter, x += dx
 		if (iter == timeStore.end()) {
 			break;
 		}
@@ -265,7 +272,6 @@ static void DrawHostogram(HDC hDC, RECT& clientRect, int gistohramWidth, int gis
 		int yTop = y - static_cast<int>(hours * yGridLenInvert);
 		int xMid = static_cast<int>(x);
 
-		//RectangleWare(hDC, static_cast<int>(x), y, static_cast<int>(x + dx), yTop);
 		if (bBeginLine) {
 			MoveToEx(hDC, xMid, yTop, NULL);
 			bBeginLine = false;
@@ -274,12 +280,6 @@ static void DrawHostogram(HDC hDC, RECT& clientRect, int gistohramWidth, int gis
 			LineTo(hDC, xMid, yTop);
 		}
 		Rectangle(hDC, xMid - 2, yTop - 2, xMid + 2, yTop + 2);
-
-		TCHAR buf[20];
-		double modInt, modFloat;
-		modFloat = modf(hours, &modInt);
-		_stprintf(buf, TEXT("%d:%02d"), static_cast<int>(modInt), static_cast<int>(modFloat * 60));
-		TextOut(hDC, static_cast<int>(x), yTop - textHeight, buf, _tcslen(buf));
 
 		iter++;
 	}
@@ -296,10 +296,13 @@ static void DrawHostogram(HDC hDC, RECT& clientRect, int gistohramWidth, int gis
 		int yTop = y - static_cast<int>(hours * yGridLenInvert);
 		int xMid = static_cast<int>(selectedDayX);
 		Rectangle(hDC, xMid - 5, yTop - 5, xMid + 5, yTop + 5);
-	}
 
-	//MoveToEx(hDC, margin + dx * dayCount, margin, NULL);
-	//LineTo(hDC, margin + dx * dayCount, clientRect.bottom - margin);
+		LPCTSTR pActiveTime = SystemTime::TimeToStr(compTime.activeTime);
+		COLORREF oldColor = SetTextColor(hDC, RGB(255, 0, 255));
+		// TODO: hack, -30 pixels to text centering
+		TextOut(hDC, xMid - 25, yTop - textHeight, pActiveTime, _tcslen(pActiveTime));
+		SetTextColor(hDC, oldColor);
+	}
 
 	SelectObject(hDC, penGistogramOld);
 	DeleteObject(penGistogram);
@@ -319,9 +322,9 @@ void DrawCompTimeStore(HWND hWnd, HDC hDC, const CompTimeStore& timeStore, Date 
 
 	DrawAxes(hDC, clientRect);
 
-	DrawHorizontalLines(hDC, clientRect, gistohramHeight);
-
-	DrawVerticalLines(hDC, clientRect, gistohramWidth, gistohramHeight, minDate, maxDate);
+	bool bGrid = (GetMenuState(GetMenu(Application::GetMainWindow()), IDC_VIEW_GRID, 0) & MF_CHECKED) > 0;
+	DrawHorizontalLines(hDC, clientRect, gistohramHeight, bGrid);
+	DrawVerticalLines(hDC, clientRect, gistohramWidth, gistohramHeight, bGrid, minDate, maxDate);
 
 	if (!timeStore.empty()) {
 		//RangeInTimeStorage(timeStore, minDate, maxDate);
