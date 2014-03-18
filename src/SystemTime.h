@@ -15,6 +15,7 @@ namespace SystemTime {
 
 	LPTSTR DateToStr(Date date);
 	Date SystemTimeToDate(SYSTEMTIME& st);
+	LPSYSTEMTIME DateToSystemTime(SYSTEMTIME& st, Date date);
 
 	LPTSTR TimeToStr(UINT32 time);
 	UINT32 StrToTime(LPCTSTR time);

@@ -31,6 +31,8 @@ void MainWindow_OnShowHide();
 
 HWND GetStatusBar();
 HWND GetToolBar();
+HWND GetLviTime();
 int FillTable(HWND hwndTvi, const CompTimeStore& timeStore, bool rebuild);
+void AddCompTimeToLvi(HWND hwndTvi, Date itemDate, const stCompTime& compTime);
 
 }

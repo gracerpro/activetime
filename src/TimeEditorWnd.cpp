@@ -20,12 +20,17 @@ void TimeEditorWnd_OnListViewSelChange(Date date = 0);
 
 void TimeEditorWnd_OnTimeAdd();
 void TimeEditorWnd_OnTimeDel();
+void TimeEditorWnd_OnTimeDelAll();
 void TimeEditorWnd_OnTimeSet();
 
 
 int CreateTimeEditorWnd(HWND hWndParent, CompTimeStore& timeStore) {
 	return DialogBoxParam(Application::GetInstance(), MAKEINTRESOURCE(IDD_TIME_EDITOR), hWndParent,
 		(DLGPROC)TimeEditorDlgProc, (LPARAM)&timeStore);
+}
+
+bool IsChanged() {
+	return g_bChange;
 }
 
 LRESULT WINAPI TimeEditorDlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -59,6 +64,8 @@ void TimeEditorWnd_OnInitDialog(HWND hWnd, CompTimeStore& timeStore) {
 	HWND hwndTvi = GetDlgItem(hWnd, IDC_LVI_TIME);
 	MainWindow::FillTable(hwndTvi, timeStore, true);
 	ListView_SetExtendedListViewStyleEx(hwndTvi, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+
+	g_bChange = false;
 }
 
 void TimeEditorWnd_OnCommand(HWND hWnd, int id, int notifyCode, HWND hwndCtrl) {
@@ -77,13 +84,16 @@ void TimeEditorWnd_OnCommand(HWND hWnd, int id, int notifyCode, HWND hwndCtrl) {
 	case IDC_TIME_SET:
 		TimeEditorWnd_OnTimeSet();
 		break;
+	case IDC_TIME_DEL_ALL:
+		TimeEditorWnd_OnTimeDelAll();
+		break;
 	}
 }
 
 void TimeEditorWnd_OnSize(HWND hWnd, int cx, int cy, int flags) {
 	HWND hwndTvi = GetDlgItem(hWnd, IDC_LVI_TIME);
 
-	MoveWindow(hwndTvi, 0, 100, cx, cy - 150, TRUE);
+	MoveWindow(hwndTvi, 0, 180, cx, cy - 180, TRUE);
 }
 
 void TimeEditorWnd_OnListViewSelChange(Date date) {
@@ -93,8 +103,10 @@ void TimeEditorWnd_OnListViewSelChange(Date date) {
 		const stCompTime& compTime = (*iterFind).second;
 		Date date = (*iterFind).first;
 
-		LPTSTR szDate = SystemTime::DateToStr(date);
-		SetDlgItemText(g_hWnd, IDC_EDT_DATE, szDate);
+		HWND hwndDtp = GetDlgItem(g_hWnd, IDC_DTP_DATE);
+		SYSTEMTIME st;
+		SystemTime::DateToSystemTime(st, date);
+		DateTime_SetSystemtime(hwndDtp, GDT_VALID, &st);
 
 		LPTSTR szActiveTime = SystemTime::TimeToStr(compTime.activeTime);
 		SetDlgItemText(g_hWnd, IDC_EDT_ACTIVE_TIME, szActiveTime);
@@ -119,25 +131,77 @@ void TimeEditorWnd_OnNotify(HWND hWnd, int id, LPNMHDR pNmhdr) {
 }
 
 void TimeEditorWnd_OnTimeAdd() {
-	Date date;
 	stCompTime compTime;
 	HWND hWnd = g_hWnd;
 
 	// 2:30
 	const int bufLen = 200;
 	TCHAR buf[bufLen];
+	SYSTEMTIME st;
+	CompTimeStore& timeStore = Document::GetCompTimeStore();
+
+	HWND hDtpDate = GetDlgItem(g_hWnd, IDC_DTP_DATE);
+	if (!hDtpDate) {
+		return;
+	}
+	DateTime_GetSystemtime(hDtpDate, &st);
 
 	GetDlgItemText(hWnd, IDC_EDT_ACTIVE_TIME, buf, bufLen);
 	compTime.activeTime = SystemTime::StrToTime(buf);
-	// check time
-
+	
+	// checking...
+	Date date = SystemTime::SystemTimeToDate(st);
+	CompTimeStore::const_iterator findIter = timeStore.find(date); 
+	if (findIter != timeStore.end()) {
+		Application::MessageBoxMy(TEXT("На этот день время существует. Выберите другое число."));
+		return;
+	}
+	
 	// add
+	timeStore[date] = compTime;
+
+	HWND hListView = GetDlgItem(hWnd, IDC_LVI_TIME);
+	MainWindow::AddCompTimeToLvi(hListView, date, compTime);
 
 	g_bChange = true;
 }
 
 void TimeEditorWnd_OnTimeDel() {
+	HWND hListView = GetDlgItem(g_hWnd, IDC_LVI_TIME);
 
+	int index = ListView_GetNextItem(hListView, -1, LVNI_SELECTED);
+	if (index == -1) {
+		return;
+	}
+	
+	LV_ITEM item = {0};
+	item.iItem = index;
+	item.mask  = LVIF_PARAM;
+	if (!ListView_GetItem(hListView, &item)) {
+		return;
+	}
+
+	Date date = (Date)item.lParam;
+	CompTimeStore& timeStore = Document::GetCompTimeStore();
+	CompTimeStore::const_iterator findIter = timeStore.find(date);
+	if (findIter != timeStore.end()) {
+		timeStore.erase(findIter);
+	}
+	ListView_DeleteItem(hListView, index);
+
+	g_bChange = true;
+}
+
+void TimeEditorWnd_OnTimeDelAll() {
+	if (IDOK != Application::MessageBoxMy(TEXT("Подствердить удаление всех данных"), MB_OKCANCEL | MB_ICONQUESTION)) {
+		return;
+	}
+
+	HWND hListView = GetDlgItem(g_hWnd, IDC_LVI_TIME);
+	ListView_DeleteAllItems(hListView);
+
+	CompTimeStore& timeStore = Document::GetCompTimeStore();
+	timeStore.clear();
 
 	g_bChange = true;
 }

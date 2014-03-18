@@ -244,4 +244,16 @@ Date SystemTimeToDate(SYSTEMTIME& st) {
 	return Date(diff / 60 / 60 / 24);
 }
 
+LPSYSTEMTIME DateToSystemTime(SYSTEMTIME& st, Date date) {
+	memset(&st, 0, sizeof(SYSTEMTIME));
+
+	st.wYear = YEAR_SINCE;
+	st.wMonth = 1;
+	st.wDay = 1;
+
+	SystemTimeAdd(st, 60 * 60 * 24 * date);
+
+	return &st;
+}
+
 }

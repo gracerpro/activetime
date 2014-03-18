@@ -117,17 +117,7 @@ void CleanLastTickCount() {
 	}
 }
 
-int SaveTime() {
-	TCHAR fileName[MAX_PATH];
-	FILE* f = NULL;
-
-	GetNearExePath(fileName, TEXT("comptime.dat"));
-	f = _tfopen(fileName, TEXT("w"));
-	if (!f) {
-		LogErr("Can't create file: comptime.dat");
-		return 0;
-	}
-
+static bool WriteTimeToFile(FILE* stream) {
 	stCompTimeStore timeCur;
 	DWORD lastTickCount = LoadLastTickCount();
 	DWORD tickCount = GetTickCount() / 1000; // in seconds
@@ -138,7 +128,7 @@ int SaveTime() {
 	timeCur.compTime.sleepTime   = g_sleepTime;
 
 #ifdef _DEBUG
-	g_compTime[68] = stCompTime(7123, 0, 0);
+	g_compTime[58] = stCompTime(1, 0, 0);
 	g_compTime[59] = stCompTime(12123, 0, 0);
 	g_compTime[60] = stCompTime(17123, 0, 0);
 	g_compTime[61] = stCompTime(3123, 0, 0);
@@ -159,10 +149,11 @@ int SaveTime() {
 	memcpy(header.signature, APP_SIGNATURE, sizeof(header.signature));
 	header.dataOffset = sizeof(stFileHead);
 
-	fwrite(&header, sizeof(header), 1, f);
+	rewind(stream);
+	fwrite(&header, sizeof(header), 1, stream);
 
 	if (g_compTime.empty()) {
-		fwrite(&timeCur, sizeof(timeCur), 1, f);
+		fwrite(&timeCur, sizeof(timeCur), 1, stream);
 	}
 	else {
 		CompTimeStore::reverse_iterator iterEnd = g_compTime.rbegin();
@@ -186,11 +177,52 @@ int SaveTime() {
 			timeStore.date = (*iter).first;
 			timeStore.compTime = (*iter).second;
 
-			fwrite(&timeStore, sizeof(timeStore), 1, f);
+			fwrite(&timeStore, sizeof(timeStore), 1, stream);
 		}
 	}
+
+	return true;
+}
+
+int SaveTime() {
+	TCHAR fileName[MAX_PATH];
+	FILE* f = NULL;
+
+	GetNearExePath(fileName, TEXT("comptime.dat"));
+	f = _tfopen(fileName, TEXT("wb+"));
+	if (!f) {
+		LogErr("Can't create file: comptime.dat");
+		return 0;
+	}
+
+	char* tmpFileData = NULL;
+	fseek(f, 0, SEEK_END);
+	long fileSize = ftell(f);
+	try {
+		tmpFileData = new char[fileSize];
+		fread(tmpFileData, 1, fileSize, f);
+	}
+	catch (...) {
+		LogErr("allocate memory fail");
+	}
+
+	bool bWriteSuccess = true;
+	try {
+		bWriteSuccess = WriteTimeToFile(f);
+	}
+	catch (...) {
+		bWriteSuccess = false;
+	}
+
+	if (!bWriteSuccess) {
+		LogErr("Save time fail");
+		rewind(f);
+		fwrite(tmpFileData, 1,fileSize, f);
+	}
+
 	fclose(f);
 
+	DWORD tickCount = GetTickCount() / 1000; // in seconds
 	SaveLastTickCount(tickCount);
 
 	return 0;

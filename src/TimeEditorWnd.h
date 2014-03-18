@@ -7,4 +7,6 @@ namespace TimeEditorWnd {
 
 int CreateTimeEditorWnd(HWND hWndParent, CompTimeStore& timeStore);
 
+bool IsChanged();
+
 }

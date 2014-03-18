@@ -117,9 +117,26 @@ void MainWindow_OnCommand(HWND hWnd, int id, int notifyCode, HWND hWndCtrl) {
 	}
 }
 
+void AddCompTimeToLvi(HWND hwndTvi, Date itemDate, const stCompTime& compTime) {
+	LV_ITEM item = {0};
+
+	item.mask = LVIF_TEXT | LVIF_PARAM;
+
+	item.pszText = SystemTime::DateToStr(itemDate);
+	item.cchTextMax = _tcslen(item.pszText);
+	item.lParam = itemDate;
+	ListView_InsertItem(hwndTvi, &item);
+
+	LPTSTR szActiveTime = SystemTime::TimeToStr(compTime.activeTime);
+	ListView_SetItemText(hwndTvi, 0, 1, szActiveTime);
+	LPTSTR szPassiveTime = SystemTime::TimeToStr(compTime.passiveTime);
+	ListView_SetItemText(hwndTvi, 0, 2, szPassiveTime);
+	LPTSTR szSleepTime = SystemTime::TimeToStr(compTime.sleepTime);
+	ListView_SetItemText(hwndTvi, 0, 3, szSleepTime);
+}
+
 int FillTable(HWND hwndTvi, const CompTimeStore& timeStore, bool rebuild) {
 	int addedCount = 0;
-	LV_ITEM item = {0};
 	LV_COLUMN col = {0};
 
 	if (!IsWindow(hwndTvi)) {
@@ -135,6 +152,7 @@ int FillTable(HWND hwndTvi, const CompTimeStore& timeStore, bool rebuild) {
 		col.cchTextMax = 10;
 		col.pszText = TEXT("Date");
 		ListView_InsertColumn(hwndTvi, 0, &col);
+		col.cx = 60;
 		col.pszText = TEXT("Active");
 		ListView_InsertColumn(hwndTvi, 1, &col);
 		col.pszText = TEXT("Passive");
@@ -143,24 +161,14 @@ int FillTable(HWND hwndTvi, const CompTimeStore& timeStore, bool rebuild) {
 		ListView_InsertColumn(hwndTvi, 3, &col);
 	}
 
+	ListView_DeleteAllItems(hwndTvi);
 	// Add data
-	item.mask = LVIF_TEXT | LVIF_PARAM;
 	CompTimeStoreConstIter iter = timeStore.begin();
 	for ( ; iter != timeStore.end(); ++iter) {
 		Date itemDate = (*iter).first;
 		const stCompTime& compTime = (*iter).second;
 
-		item.pszText = SystemTime::DateToStr(itemDate);
-		item.cchTextMax = _tcslen(item.pszText);
-		item.lParam = itemDate;
-		ListView_InsertItem(hwndTvi, &item);
-
-		LPTSTR szActiveTime = SystemTime::TimeToStr(compTime.activeTime);
-		ListView_SetItemText(hwndTvi, 0, 1, szActiveTime);
-		LPTSTR szPassiveTime = SystemTime::TimeToStr(compTime.passiveTime);
-		ListView_SetItemText(hwndTvi, 0, 2, szPassiveTime);
-		LPTSTR szSleepTime = SystemTime::TimeToStr(compTime.sleepTime);
-		ListView_SetItemText(hwndTvi, 0, 3, szSleepTime);
+		AddCompTimeToLvi(hwndTvi, itemDate, compTime);
 	}
 
 	return addedCount;
@@ -207,7 +215,7 @@ void MainWindow_OnSize(HWND hWnd, int cx, int cy, int action) {
 		return; // do not process
 	}
 
-	const int lviWidth = 280;
+	const int lviWidth = 70 + 60 * 3;
 	int toolbarHeight = 0;
 	int statusbarHeight = 0;
 
@@ -370,6 +378,10 @@ HWND GetStatusBar() {
 
 HWND GetToolBar() {
 	return g_hwndToolBar;
+}
+
+HWND GetLviTime() {
+	return g_hwndLviTime;
 }
 
 LRESULT WINAPI MainWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

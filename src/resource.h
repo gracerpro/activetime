@@ -50,3 +50,5 @@
 #define IDC_TIME_ADD                    1001
 #define IDC_TIME_DEL                    1002
 #define IDC_TIME_SET                    1003
+#define IDC_TIME_DEL_ALL                1004
+#define IDC_DTP_DATE                    1005

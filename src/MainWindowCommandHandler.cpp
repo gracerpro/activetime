@@ -19,6 +19,11 @@ void MainWindow_OnFileSaveAs() {
 void MainWindow_OnFileEditTime() {
 	CompTimeStore& timeStore = Document::GetCompTimeStore();
 	CreateTimeEditorWnd(Application::GetMainWindow(), timeStore);
+	if (TimeEditorWnd::IsChanged()) {
+		HWND hListView = GetLviTime();
+		MainWindow::FillTable(hListView, timeStore, false);
+		InvalidateRect(Application::GetGraphicWindow(), NULL, FALSE);
+	}
 }
 
 void MainWindow_OnAppExit() {
