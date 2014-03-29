@@ -20,7 +20,7 @@ int InitInstance(HINSTANCE hInst);
 int ExitInstance(HINSTANCE hInst);
 int Run(HINSTANCE hInst);
 
-TCHAR* GetTitle();
+const TCHAR* GetTitle();
 
 int SwapRam();
 

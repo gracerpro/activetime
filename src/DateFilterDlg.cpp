@@ -62,7 +62,7 @@ void GetSelectedDateRange(Date& minDate, Date& maxDate) {
 void DateFilterDlg_OnInitDialog(HWND hWnd) {
 	g_hWnd = hWnd;
 
-	TCHAR* arrMonthName[] = {
+	const TCHAR* arrMonthName[] = {
 		TEXT("Январь"), TEXT("Февраль"), TEXT("Март"), TEXT("Апрель"),
 		TEXT("Май"), TEXT("Июнь"), TEXT("Июль"), TEXT("Август"),
 		TEXT("Сентябрь"), TEXT("Октябрь"), TEXT("Ноябрь"), TEXT("Декабрь")

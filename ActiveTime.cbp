@@ -8,9 +8,9 @@
 		<Build>
 			<Target title="Debug">
 				<Option platforms="Windows;" />
-				<Option output="bin\ActiveTime" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="build\codeblocks\" />
-				<Option object_output="build\codeblocks\" />
+				<Option output="bin/ActiveTime" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="build/codeblocks/" />
+				<Option object_output="build/codeblocks/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -19,13 +19,31 @@
 			</Target>
 			<Target title="Release">
 				<Option platforms="Windows;" />
-				<Option output="bin\ActiveTime" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="build\codeblocks\" />
-				<Option object_output="build\codeblocks\" />
+				<Option output="bin/ActiveTime" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="build/codeblocks/" />
+				<Option object_output="build/codeblocks/" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-Wno-write-strings" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Release x64">
+				<Option platforms="Windows;" />
+				<Option output="bin/ActiveTime" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="build/codeblocks/" />
+				<Option object_output="build/codeblocks/" />
+				<Option type="0" />
+				<Option compiler="gnu_gcc_compiler_64_bit" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wno-write-strings" />
+					<Add option="-static-libstdc++" />
+					<Add option="-fexceptions" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -38,35 +56,36 @@
 		</Compiler>
 		<Linker>
 			<Add library="comctl32" />
+			<Add library="gdiplus" />
 		</Linker>
-		<Unit filename="src\AboutDlg.cpp" />
-		<Unit filename="src\AboutDlg.h" />
-		<Unit filename="src\ActiveTime.cpp" />
-		<Unit filename="src\ActiveTime.rc">
+		<Unit filename="src/AboutDlg.cpp" />
+		<Unit filename="src/AboutDlg.h" />
+		<Unit filename="src/ActiveTime.cpp" />
+		<Unit filename="src/ActiveTime.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
-		<Unit filename="src\Application.cpp" />
-		<Unit filename="src\Application.h" />
-		<Unit filename="src\DateFilterDlg.cpp" />
-		<Unit filename="src\DateFilterDlg.h" />
-		<Unit filename="src\Document.cpp" />
-		<Unit filename="src\Document.h" />
-		<Unit filename="src\GraphicPopupWnd.cpp" />
-		<Unit filename="src\GraphicPopupWnd.h" />
-		<Unit filename="src\GraphicWnd.cpp" />
-		<Unit filename="src\GraphicWnd.h" />
-		<Unit filename="src\MainWindow.cpp" />
-		<Unit filename="src\MainWindow.h" />
-		<Unit filename="src\MainWindowCommandHandler.cpp" />
-		<Unit filename="src\MainWindowCommandHandler.h" />
-		<Unit filename="src\SystemTime.cpp" />
-		<Unit filename="src\SystemTime.h" />
-		<Unit filename="src\TimeEditorWnd.cpp" />
-		<Unit filename="src\TimeEditorWnd.h" />
-		<Unit filename="src\config.h" />
-		<Unit filename="src\global.cpp" />
-		<Unit filename="src\global.h" />
-		<Unit filename="src\resource.h" />
+		<Unit filename="src/Application.cpp" />
+		<Unit filename="src/Application.h" />
+		<Unit filename="src/DateFilterDlg.cpp" />
+		<Unit filename="src/DateFilterDlg.h" />
+		<Unit filename="src/Document.cpp" />
+		<Unit filename="src/Document.h" />
+		<Unit filename="src/GraphicPopupWnd.cpp" />
+		<Unit filename="src/GraphicPopupWnd.h" />
+		<Unit filename="src/GraphicWnd.cpp" />
+		<Unit filename="src/GraphicWnd.h" />
+		<Unit filename="src/MainWindow.cpp" />
+		<Unit filename="src/MainWindow.h" />
+		<Unit filename="src/MainWindowCommandHandler.cpp" />
+		<Unit filename="src/MainWindowCommandHandler.h" />
+		<Unit filename="src/SystemTime.cpp" />
+		<Unit filename="src/SystemTime.h" />
+		<Unit filename="src/TimeEditorWnd.cpp" />
+		<Unit filename="src/TimeEditorWnd.h" />
+		<Unit filename="src/config.h" />
+		<Unit filename="src/global.cpp" />
+		<Unit filename="src/global.h" />
+		<Unit filename="src/resource.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

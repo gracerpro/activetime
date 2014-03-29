@@ -157,9 +157,6 @@ static bool WriteTimeToFile(FILE* stream) {
 	}
 	else {
 		CompTimeStore::reverse_iterator iterEnd = g_compTime.rbegin();
-		Date lastDate = (*iterEnd).first;
-		stCompTime& lastTime = (*iterEnd).second;
-
 		stCompTime ctBeforeDiv, ctAfterDiv;
 
 		if (GetDivTime(timeCur.compTime, ctBeforeDiv, ctAfterDiv)) {
@@ -253,7 +250,7 @@ bool GetDivTime(stCompTime& curCompTime, stCompTime& beforeTime, stCompTime& aft
 	time_t timeDiv = mktime(&tmDiv);
 
 	if (tmCur.tm_mday != tmStart.tm_mday) {
-		int secondsAfterDivTime = static_cast<int>(curTime - timeDiv);
+		//int secondsAfterDivTime = static_cast<int>(curTime - timeDiv);
 		int secondsBeforeDivTime = static_cast<int>(timeDiv - startTime);
 
 		beforeTime.activeTime  = secondsBeforeDivTime;

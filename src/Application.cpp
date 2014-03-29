@@ -27,7 +27,7 @@ static HINSTANCE g_hInst = NULL;
 static HWND      g_hGraphicWnd = NULL;
 static HWND      g_hMainWnd = NULL;
 static HWND      g_hGraphicPopupWnd = NULL;
-static ULONG_PTR g_GdiTocken = NULL;
+static ULONG_PTR g_GdiTocken = 0;
 
 int InitInstance(HINSTANCE hInst) {
 	INITCOMMONCONTROLSEX icce;
@@ -71,13 +71,13 @@ int Run(HINSTANCE hInst) {
 	g_hGraphicWnd = CreateGraphicWnd(hWnd);
 	if (!g_hGraphicWnd) {
 		Log("Can't create graphic window");
-		return NULL;
+		return -1;
 	}
 
 	g_hGraphicPopupWnd = CreateGraphicPopupWnd(NULL);
 	if (!g_hGraphicPopupWnd) {
 		Log("Can't create graphic popup window");
-		return NULL;
+		return -1;
 	}
 
 	NOTIFYICONDATA nid = {0};
@@ -104,7 +104,7 @@ int Run(HINSTANCE hInst) {
 	return res;
 }
 
-TCHAR* GetTitle() {
+const TCHAR* GetTitle() {
 	return TEXT("ActiveTime v1.0");
 }
 

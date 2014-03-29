@@ -148,15 +148,15 @@ void TimeEditorWnd_OnTimeAdd() {
 
 	GetDlgItemText(hWnd, IDC_EDT_ACTIVE_TIME, buf, bufLen);
 	compTime.activeTime = SystemTime::StrToTime(buf);
-	
+
 	// checking...
 	Date date = SystemTime::SystemTimeToDate(st);
-	CompTimeStore::const_iterator findIter = timeStore.find(date); 
+	CompTimeStore::const_iterator findIter = timeStore.find(date);
 	if (findIter != timeStore.end()) {
 		Application::MessageBoxMy(TEXT("На этот день время существует. Выберите другое число."));
 		return;
 	}
-	
+
 	// add
 	timeStore[date] = compTime;
 
@@ -173,7 +173,7 @@ void TimeEditorWnd_OnTimeDel() {
 	if (index == -1) {
 		return;
 	}
-	
+
 	LV_ITEM item = {0};
 	item.iItem = index;
 	item.mask  = LVIF_PARAM;
@@ -183,7 +183,7 @@ void TimeEditorWnd_OnTimeDel() {
 
 	Date date = (Date)item.lParam;
 	CompTimeStore& timeStore = Document::GetCompTimeStore();
-	CompTimeStore::const_iterator findIter = timeStore.find(date);
+	CompTimeStore::iterator findIter = timeStore.find(date);
 	if (findIter != timeStore.end()) {
 		timeStore.erase(findIter);
 	}

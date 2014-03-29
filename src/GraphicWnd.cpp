@@ -125,7 +125,7 @@ static void DrawHorizontalLines(HDC hDC, RECT& clientRect, int gistohramHeight, 
 	HPEN penHorzOld = (HPEN)SelectObject(hDC, penHorz);
 
 	int y = clientRect.bottom - margin;
-	const int maxGridY = 24;
+	const size_t maxGridY = 24;
 
 	for (size_t i = 3; i <= maxGridY; i += 3) {
 		int y2 = y - i * gistohramHeight / maxGridY;
@@ -167,8 +167,6 @@ static void DrawVerticalLines(HDC hDC, RECT& clientRect, int gistohramWidth, int
 	HPEN penHorz = CreatePen(PS_DASH, 1, RGB(230, 150, 0));
 	HPEN penHorzOld = (HPEN)SelectObject(hDC, penHorz);
 
-	int y = clientRect.bottom - margin;
-	const int maxGridY = 24;
 	const int daysCount = maxDate - minDate;
 	const int lineCount = GetVertLineCount(minDate, maxDate);
 	float dx = gistohramWidth * lineCount / (float)(daysCount);
@@ -286,7 +284,6 @@ static void DrawHostogram(HDC hDC, RECT& clientRect, int gistohramWidth, int gis
 
 	if (selectedDayX > 0) {
 		CompTimeStoreConstIter findIter = timeStore.find(g_selectedDate);
-		Date date = (*findIter).first;
 		const stCompTime& compTime = (*findIter).second;
 
 		float hours = compTime.ActiveToHours();

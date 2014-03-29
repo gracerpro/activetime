@@ -194,7 +194,6 @@ LPTSTR TimeToStr(UINT32 time) {
 }
 
 UINT32 StrToTime(LPCTSTR time) {
-	LPCTSTR p = time;
 	UINT32 res = 0;
 	TCHAR buf[20];
 
